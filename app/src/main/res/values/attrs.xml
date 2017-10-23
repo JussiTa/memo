@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+
+    <declare-styleable name="CustomLayoutLP">
+        <attr name="android:layout_gravity" />
+        <attr name="layout_position">
+            <enum name="middle" value="5" />
+            <enum name="left" value="5" />
+            <enum name="right" value="5" />
+        </attr>
+    </declare-styleable>
+
+
+</resources>

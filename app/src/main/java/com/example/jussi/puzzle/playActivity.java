@@ -6,6 +6,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.res.Resources;
 import android.graphics.Color;
+import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
 import android.icu.util.TimeZone;
 import android.net.ConnectivityManager;
@@ -21,13 +22,19 @@ import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.view.ActionMode;
+import android.support.v7.widget.GridLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
+import android.util.AttributeSet;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.MotionEvent;
+import android.view.TouchDelegate;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.GridView;
+import android.widget.ImageView;
 import android.widget.Toast;
 
 
@@ -52,148 +59,15 @@ public class playActivity extends AppCompatActivity {
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_play);
-        final GridView gridview =  (GridView) findViewById(R.id.gridview);
-        final ViewGroup viewGroup = (ViewGroup) findViewById(R.id.gridview);
-
-       Thread t = new Thread(new MyRunnable());
-
-       t.start();
-
-
-
-        imageadapter = (ImageAdapter) gridview.getAdapter();
+        setContentView(R.layout.grid);
 
 
 
 
+      Thread t = new Thread(new MyRunnable());
 
-        gridview.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-
-            
-
-
-
-       public void onItemClick(AdapterView<?> parent, View v,
-                                    int position, long id) {
-
-
-                //First click
-                if (klicks == 0 && !locked[position]){
-                    position1[0] = position;
-
-                }
-
-
-                    //Checked second click is not same position
-                else if (klicks == 1 && position1[0] != position && !locked[position])
-                    position1[1] = position;
-
-
-
-                //First click
-                if (twoclicked < 1 && position1[0] == position) {
-                    imageadapter = (ImageAdapter) gridview.getAdapter();
-                    if (!locked[position]) {
-
-                        imageadapter.setRigtpicture(position, v);
-                        klicks++;
-                    }
-
-                }
-
-                //Second card selected
-                if (twoclicked == 1 && position1[1] != null) {
-                    imageadapter = (ImageAdapter) gridview.getAdapter();
-
-
-                    if (position1[1] == position) {
-                        if (!locked[position]) {
-                            playActivity.view=v;
-
-                            imageadapter.setRigtpicture(position, v);
-                            klicks++;
-                        }
-                    }
-
-                    if (imageadapter.pairFound()) {
-                        gridview.setSelection(position1[0]);
-                        //Prevented reuse pairfound positions;
-                        locked[position1[0]] = true;
-                        locked[position1[1]] = true;
-
-
-                        imageadapter.removePair(position1[1], v);
-
-
-
-
-                        klicks=0;
-                        twoclicked = 0;
-                        imageadapter.resetSame();
-                        position1[0] = 10000;
-                        position1[1] = 100000;
-
-
-
-
-
-
-
-
-
-                    }
-
-
-                    //If two cards are turned no pairs
-                } else if (twoclicked == 2 || twoclicked == 3) {
-
-                    if (position1[0] == position || position1[1] == position) {
-                        if(!locked[position]) {
-                            imageadapter = (ImageAdapter) gridview.getAdapter();
-                            imageadapter.setBackground(position, v);
-                            klicks++;
-
-                        }
-                    }
-
-
-                }
-                 //Prevent null point exception from adapter class
-
-                twoclicked = imageadapter.getClicks();
-
-                //Turn cards back
-                if (klicks == 4 && imageadapter.checkAllCardAreSameSideUp(position1[0], position1[1])) {
-                    klicks = 0;
-                    twoclicked = 0;
-                    imageadapter.resetSame();
-                    position1[0] = 10000;
-                    position1[1] = 10000;
-
-                }
-
-            }
-
-
-        });
-
-
-
+     t.start();
     }
-    @Override
-    public void onResume() {
-        super.onResume();  // Always call the superclass method first
-
-
-         Log.d("onresume","enabled");
-
-
-
-    }
-
-
-
 
         private class MyRunnable implements Runnable {
         private MyRunnable() {
@@ -221,6 +95,9 @@ public class playActivity extends AppCompatActivity {
 
 
     }
+
+
+
 
 
 }
