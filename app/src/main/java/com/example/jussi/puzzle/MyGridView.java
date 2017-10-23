@@ -1,5 +1,7 @@
 package com.example.jussi.puzzle;
 
+import android.annotation.TargetApi;
+import android.app.MediaRouteButton;
 import android.content.Context;
 import android.content.res.Resources;
 import android.content.res.TypedArray;
@@ -7,6 +9,7 @@ import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.os.SystemClock;
+import android.support.annotation.MainThread;
 import android.support.annotation.Nullable;
 import android.support.annotation.RequiresApi;
 import android.util.AttributeSet;
@@ -15,6 +18,7 @@ import android.view.Gravity;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.AdapterView;
+import android.widget.Button;
 import android.widget.GridLayout;
 import android.widget.GridView;
 import android.widget.ImageView;
@@ -51,7 +55,9 @@ public class MyGridView extends GridLayout {
     private ImageView view1;
     private ImageView view2;
     boolean pairfound = false;
-    boolean seconClicked =false;
+    boolean seconClicked = false;
+    boolean clickPerformed = false;
+    MyRunnable runnable = null;
 
 
     public MyGridView(Context context) {
@@ -87,7 +93,40 @@ public class MyGridView extends GridLayout {
         }
 
 
-        t = new Thread(new MyRunnable());
+
+
+       /* new Thread(new Runnable() {
+
+            public void run() {
+
+                    try {
+                        Thread.sleep(500);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+
+                    if (clickPerformed)
+                        view2.performClick();
+
+            }
+        }).start();*/
+       //runnable = new MyRunnable();
+
+      // t = new Thread(runnable);
+
+
+        //    t.start();
+
+
+
+
+
+
+
+
+
+
+
 
 
     }
@@ -96,18 +135,22 @@ public class MyGridView extends GridLayout {
         super(context, attrs, defStyle);
     }
 
+    @TargetApi(Build.VERSION_CODES.M)
     @RequiresApi(api = Build.VERSION_CODES.KITKAT)
     @Override
     protected void onLayout(boolean changed, int left, int top, int right, int bottom) {
         super.onLayout(changed, left, top, right, bottom);
-        ImageView view;
+        ImageView view = null;
+
 
         if (pair[0] != null && pair[1] != null) {
-            Log.d("www","www");
+            Log.d("www", "www");
+
             view1 = (ImageView) getChildAt(pair[0]);
             view2 = (ImageView) getChildAt(pair[1]);
             everyCardBackgroundUp = false;
-            seconClicked=true;
+            seconClicked = true;
+
 
             if (view1.getDrawable().equals(drawable)
                     && view2.getDrawable().equals(drawable)) {
@@ -115,15 +158,32 @@ public class MyGridView extends GridLayout {
                 pair[0] = null;
                 pair[1] = null;
                 everyCardBackgroundUp = true;
-                seconClicked=false;
+                seconClicked = false;
+
             }
+        }
+
+        if (clickPerformed) {
+            view1.setImageResource(R.drawable.empty);
+            view2.setImageResource(R.drawable.empty);
+            clickPerformed = false;
+            pairfound = false;
+            pair[0] = null;
+            pair[1] = null;
+            everyCardBackgroundUp = true;
+            seconClicked=false;
+
+
+
+
+
         }
 
 
         if (everyCardBackgroundUp == false && pair[0] != null && pair[1] != null) {
             Log.d("täällä", "ollaan1");
-            ImageView view1 = (ImageView) getChildAt(pair[0]);
-            ImageView view2 = (ImageView) getChildAt(pair[1]);
+            view1 = (ImageView) getChildAt(pair[0]);
+            view2 = (ImageView) getChildAt(pair[1]);
             Log.d("view1", String.valueOf(mThumbIds1[pair[0]]));
             Log.d("view2", String.valueOf(mThumbIds1[pair[1]]));
 
@@ -131,30 +191,23 @@ public class MyGridView extends GridLayout {
             if (mThumbIds1[pair[0]].equals(mThumbIds1[pair[1]])) {
                 Log.d("täällä", "ollaan");
                 pairfound = true;
-                //view2.performLongClick();
+                //   view1.setImageResource(R.drawable.empty);
+                //  view2.setImageResource(R.drawable.empty);
+                clickPerformed = true;
 
-
-                t.start();
-                try {
-                    t.join(1000);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-
-
-                view1.setImageResource(R.drawable.empty);
-                view2.setImageResource(R.drawable.empty);
-                pairfound = false;
-                pair[0] = null;
-                pair[1] = null;
-                everyCardBackgroundUp = true;
-                seconClicked=false;
-
-
-
+                view2.post(new Runnable(){
+                    @Override
+                    public void run() {
+                        try {
+                            Thread.sleep(1000);
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
+                        view2.performClick();
+                    }
+                });
 
             }
-
 
         }
 
@@ -169,15 +222,10 @@ public class MyGridView extends GridLayout {
 
             }
 
-
-
         }
         clicks++;
-       /* if (pair[1] != null) {
-            everyCardBackgroundUp=false;
-            pair[0] = null;
-            pair[1] = null;
-        }*/
+
+
 
 
     }
@@ -185,32 +233,30 @@ public class MyGridView extends GridLayout {
 
     @Override
     public boolean onInterceptTouchEvent(MotionEvent ev) {
-        //    clicks++;
+
         int count = getChildCount();
         ImageView child;
-      //  Log.d("CLICKS", String.valueOf(clicks));
-
-
+        Log.d("CLICKS", String.valueOf(clicks));
         for (int i = 0; i < count; i++) {
 
             child = (ImageView) getChildAt(i);
             child.setOnClickListener(new OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    ImageView view = (ImageView) v ;
+                    ImageView view = (ImageView) v;
                     if (pair[0] == null) {
-                        Log.d("pair0","==0" );
+                        Log.d("pair0", "==0");
                         pair[0] = id.get(view.getId());
                         view.setImageResource(mThumbIds1[id.get(view.getId())]);
                         everyCardBackgroundUp = false;
 
-                    } if (pair[1] == null && everyCardBackgroundUp == false && pair[0]!=id.get(view.getId())) {
+                    }
+                    if (pair[1] == null && everyCardBackgroundUp == false && pair[0] != id.get(view.getId())) {
                         pair[1] = id.get(view.getId());
-                        Log.d("toka","kortti");
+                        Log.d("toka", "kortti");
                         view.setImageResource(mThumbIds1[id.get(view.getId())]);
-
-
-                    } if (seconClicked && pair[0]==id.get(view.getId()) || seconClicked && pair[1]==id.get(view.getId()) ) {
+                    }
+                    if (seconClicked && pair[0] == id.get(view.getId()) || seconClicked && pair[1] == id.get(view.getId())) {
                         view.setImageDrawable(drawable);
                         Log.d("käännetään", "takaisin");
 
@@ -222,24 +268,51 @@ public class MyGridView extends GridLayout {
             });
         }
 
+
         return super.onInterceptTouchEvent(ev);
     }
 
 
     private class MyRunnable implements Runnable {
+
+        private volatile boolean running = true;
+        private boolean clicked=false;
+         Button button = new Button(getContext());
+
+
+
         private MyRunnable() {
-            //SystemClock.setCurrentTimeMillis(0);
 
         }
 
 
+
+        public void terminate(){
+
+            running=false;
+        }
+
+        public boolean clicked(){
+
+            return clicked;
+        }
+
+
+
         @Override
         public void run() {
+            while(running) {
+                try {
+                    Thread.sleep(1000);
 
+                    if(clickPerformed)
+                        button.performClick();
 
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
 
-
-
+            }
         }
 
 
